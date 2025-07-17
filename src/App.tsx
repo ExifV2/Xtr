@@ -13,12 +13,27 @@ function App() {
       const video = document.getElementById('heroVideo') as HTMLVideoElement;
       if (video) {
         const fadePoint = window.innerHeight * 0.3;
-        const newVolume = Math.max(0, 0.5 - (window.scrollY / fadePoint) * 0.5);
-        video.volume = newVolume;
+        if (!video.muted) {
+          const newVolume = Math.max(0, 0.5 - (window.scrollY / fadePoint) * 0.5);
+          video.volume = newVolume;
+        }
       }
     };
 
     window.addEventListener('scroll', handleScroll);
+    
+    // Try to enable audio after user interaction
+    const enableAudio = () => {
+      const video = document.getElementById('heroVideo') as HTMLVideoElement;
+      if (video && video.muted) {
+        video.muted = false;
+        video.volume = 0.5;
+      }
+    };
+    
+    // Add click listener to enable audio on first user interaction
+    document.addEventListener('click', enableAudio, { once: true });
+    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -93,7 +108,6 @@ function App() {
           id="heroVideo"
           autoPlay
           loop
-          muted
           playsInline
           preload="auto"
           controls={false}
@@ -103,6 +117,26 @@ function App() {
           <source src="https://raw.githubusercontent.com/proxit-git/website/main/ORG.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
+        
+        {/* Audio control overlay */}
+        <div className="absolute bottom-8 right-8 z-30">
+          <button
+            onClick={() => {
+              const video = document.getElementById('heroVideo') as HTMLVideoElement;
+              if (video) {
+                if (video.muted) {
+                  video.muted = false;
+                  video.volume = 0.5;
+                } else {
+                  video.muted = true;
+                }
+              }
+            }}
+            className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/30 transition-all"
+          >
+            🔊
+          </button>
+        </div>
       </section>
 
       {/* Hero Title Section with Glass Effect */}
