@@ -5,6 +5,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [videoVolume, setVideoVolume] = useState(0.5);
+  const [currentPage, setCurrentPage] = useState('home');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,17 +23,37 @@ function App() {
 
     window.addEventListener('scroll', handleScroll);
     
-    // Try to enable audio after user interaction
-    const enableAudio = () => {
+    // Handle video and audio initialization
+    const initializeVideo = () => {
       const video = document.getElementById('heroVideo') as HTMLVideoElement;
-      if (video && video.muted) {
-        video.muted = false;
-        video.volume = 0.5;
+      const audioIcon = document.getElementById('audioIcon');
+      
+      if (video) {
+        // Ensure video starts muted for autoplay compliance
+        video.muted = true;
+        
+        // Update audio icon based on muted state
+        if (audioIcon) {
+          audioIcon.textContent = video.muted ? '🔇' : '🔊';
+        }
+        
+        // Add event listeners for video
+        video.addEventListener('loadstart', () => {
+          console.log('Video loading started');
+        });
+        
+        video.addEventListener('canplay', () => {
+          console.log('Video can start playing');
+        });
+        
+        video.addEventListener('error', (e) => {
+          console.error('Video error:', e);
+        });
       }
     };
     
-    // Add click listener to enable audio on first user interaction
-    document.addEventListener('click', enableAudio, { once: true });
+    // Initialize video when component mounts
+    initializeVideo();
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -61,13 +82,27 @@ function App() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8 space-x-reverse">
-              <a href="#home" className="text-gray-700 hover:text-red-600 transition-colors font-medium">خانه</a>
-              <a href="#about" className="text-gray-700 hover:text-red-600 transition-colors font-medium">درباره ما</a>
-              <a href="#events" className="text-gray-700 hover:text-red-600 transition-colors font-medium">رویدادها</a>
-              <a href="#reviews" className="text-gray-700 hover:text-red-600 transition-colors font-medium">نظرات</a>
+              <button onClick={() => setCurrentPage('home')} className="text-gray-700 hover:text-red-600 transition-colors font-medium">خانه</button>
+              <button onClick={() => setCurrentPage('home')} className="text-gray-700 hover:text-red-600 transition-colors font-medium">درباره ما</button>
+              <button onClick={() => setCurrentPage('home')} className="text-gray-700 hover:text-red-600 transition-colors font-medium">رویدادها</button>
+              <button onClick={() => setCurrentPage('home')} className="text-gray-700 hover:text-red-600 transition-colors font-medium">نظرات</button>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <button 
+                  onClick={() => setCurrentPage('login')}
+                  className="text-gray-700 hover:text-red-600 transition-colors font-medium px-4 py-2 rounded-full border border-gray-300 hover:border-red-600"
+                >
+                  ورود
+                </button>
+                <button 
+                  onClick={() => setCurrentPage('signup')}
+                  className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors font-medium"
+                >
+                  ثبت نام
+                </button>
+              </div>
               <button 
                 onClick={handleContactClick}
-                className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors font-medium"
+                className="bg-gray-800 text-white px-6 py-2 rounded-full hover:bg-gray-900 transition-colors font-medium"
               >
                 تماس با ما
               </button>
@@ -86,13 +121,27 @@ function App() {
           {isMenuOpen && (
             <nav className="md:hidden mt-4 py-4 border-t border-gray-200">
               <div className="flex flex-col space-y-4">
-                <a href="#home" className="text-gray-700 hover:text-red-600 transition-colors font-medium">خانه</a>
-                <a href="#about" className="text-gray-700 hover:text-red-600 transition-colors font-medium">درباره ما</a>
-                <a href="#events" className="text-gray-700 hover:text-red-600 transition-colors font-medium">رویدادها</a>
-                <a href="#reviews" className="text-gray-700 hover:text-red-600 transition-colors font-medium">نظرات</a>
+                <button onClick={() => { setCurrentPage('home'); setIsMenuOpen(false); }} className="text-gray-700 hover:text-red-600 transition-colors font-medium text-right">خانه</button>
+                <button onClick={() => { setCurrentPage('home'); setIsMenuOpen(false); }} className="text-gray-700 hover:text-red-600 transition-colors font-medium text-right">درباره ما</button>
+                <button onClick={() => { setCurrentPage('home'); setIsMenuOpen(false); }} className="text-gray-700 hover:text-red-600 transition-colors font-medium text-right">رویدادها</button>
+                <button onClick={() => { setCurrentPage('home'); setIsMenuOpen(false); }} className="text-gray-700 hover:text-red-600 transition-colors font-medium text-right">نظرات</button>
+                <div className="flex flex-col space-y-2">
+                  <button 
+                    onClick={() => { setCurrentPage('login'); setIsMenuOpen(false); }}
+                    className="text-gray-700 hover:text-red-600 transition-colors font-medium px-4 py-2 rounded-full border border-gray-300 hover:border-red-600 text-center"
+                  >
+                    ورود
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentPage('signup'); setIsMenuOpen(false); }}
+                    className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors font-medium text-center"
+                  >
+                    ثبت نام
+                  </button>
+                </div>
                 <button 
                   onClick={handleContactClick}
-                  className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors font-medium w-fit"
+                  className="bg-gray-800 text-white px-6 py-2 rounded-full hover:bg-gray-900 transition-colors font-medium w-fit"
                 >
                   تماس با ما
                 </button>
@@ -102,15 +151,21 @@ function App() {
         </div>
       </header>
 
+      {/* Conditional Page Rendering */}
+      {currentPage === 'home' && (
+        <>
+
       {/* Hero Section with Video Background */}
       <section id="home" className="relative h-screen overflow-hidden">
         <video
           id="heroVideo"
           autoPlay
           loop
+          muted
           playsInline
           preload="auto"
           controls={false}
+          webkit-playsinline="true"
           className="absolute inset-0 w-full h-full object-cover object-center"
           style={{ transform: `translateY(${scrollY * 0.5}px)` }}
         >
@@ -132,9 +187,9 @@ function App() {
                 }
               }
             }}
-            className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/30 transition-all"
+            className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/30 transition-all shadow-lg"
           >
-            🔊
+            <span id="audioIcon">🔇</span>
           </button>
         </div>
       </section>
@@ -294,50 +349,95 @@ function App() {
               نقشه <span className="text-red-600">راه آینده</span>
             </h2>
             
+            <div className="text-center mb-16">
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl max-w-4xl mx-auto">
+                <p className="text-lg text-gray-700 leading-relaxed">
+                  برنامه‌ریزی دقیق و مرحله‌ای برای رسیدن به اهداف بلندمدت تیم قهرمانان زندگی. 
+                  هر فاز شامل اهداف مشخص، فعالیت‌های کلیدی و شاخص‌های موفقیت است.
+                </p>
+              </div>
+            </div>
+            
             <div className="relative">
               {/* Timeline Line */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-red-300 via-red-500 to-red-700 rounded-full"></div>
+              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-2 bg-gradient-to-b from-red-300 via-red-500 to-red-700 rounded-full shadow-lg"></div>
               
               {/* Phase 1 */}
               <div className="relative flex items-center mb-16">
                 <div className="w-1/2 pr-8 text-right">
-                  <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
+                  <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 border border-white/50 shadow-3xl hover:shadow-2xl transition-all">
                     <div className="flex items-center justify-end mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900">فاز اول: راه‌اندازی</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-1">فاز اول: راه‌اندازی و پایه‌گذاری</h3>
                         <p className="text-red-600 font-medium">تیر ۱۴۰۴ - مهر ۱۴۰۴</p>
                       </div>
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                        <Play className="text-red-600" size={20} />
+                      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <Play className="text-red-600" size={24} />
                       </div>
                     </div>
-                    <p className="text-gray-600">
-                      راه‌اندازی پلتفرم اولیه، تشکیل تیم اصلی، و شروع فعالیت‌های آموزشی و توسعه‌ای
+                    <p className="text-gray-700 mb-4 leading-relaxed">
+                      مرحله بنیادی پروژه که شامل تشکیل تیم اصلی، تعریف ماموریت و چشم‌انداز، و راه‌اندازی زیرساخت‌های اولیه است.
                     </p>
+                    <div className="space-y-3">
+                      <div className="bg-red-50 p-3 rounded-xl">
+                        <h4 className="font-semibold text-gray-800 mb-1">🎯 اهداف کلیدی:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• تشکیل تیم مرکزی ۱۰ نفره</li>
+                          <li>• طراحی هویت بصری و برند</li>
+                          <li>• راه‌اندازی وب‌سایت و شبکه‌های اجتماعی</li>
+                        </ul>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-xl">
+                        <h4 className="font-semibold text-gray-800 mb-1">📊 شاخص‌های موفقیت:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• ۵۰۰ فالوور در شبکه‌های اجتماعی</li>
+                          <li>• برگزاری ۳ جلسه آموزشی</li>
+                          <li>• تکمیل ۱۰۰٪ مستندات پروژه</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full border-4 border-white shadow-lg"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full border-4 border-white shadow-xl z-10"></div>
                 <div className="w-1/2"></div>
               </div>
               
               {/* Phase 2 */}
               <div className="relative flex items-center mb-16">
                 <div className="w-1/2"></div>
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full border-4 border-white shadow-lg"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full border-4 border-white shadow-xl z-10"></div>
                 <div className="w-1/2 pl-8">
-                  <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
+                  <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 border border-white/50 shadow-3xl hover:shadow-2xl transition-all">
                     <div className="flex items-center mb-4">
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center ml-4">
-                        <Users className="text-red-600" size={20} />
+                      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center ml-4 shadow-lg">
+                        <Users className="text-red-600" size={24} />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900">فاز دوم: گسترش</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-1">فاز دوم: گسترش و توسعه</h3>
                         <p className="text-red-600 font-medium">آبان ۱۴۰۴ - اسفند ۱۴۰۴</p>
                       </div>
                     </div>
-                    <p className="text-gray-600">
-                      گسترش فعالیت‌ها به سایر شهرها، افزایش تعداد اعضا، و راه‌اندازی پروژه‌های جدید
+                    <p className="text-gray-700 mb-4 leading-relaxed">
+                      مرحله رشد و توسعه که در آن فعالیت‌ها به سایر شهرها گسترش یافته و پروژه‌های جدید راه‌اندازی می‌شود.
                     </p>
+                    <div className="space-y-3">
+                      <div className="bg-green-50 p-3 rounded-xl">
+                        <h4 className="font-semibold text-gray-800 mb-1">🚀 اهداف کلیدی:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• گسترش به ۵ شهر جدید</li>
+                          <li>• راه‌اندازی ۳ پروژه اجتماعی</li>
+                          <li>• تشکیل شبکه داوطلبان</li>
+                        </ul>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded-xl">
+                        <h4 className="font-semibold text-gray-800 mb-1">📈 شاخص‌های موفقیت:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• ۲۰۰۰ عضو فعال</li>
+                          <li>• ۱۰ رویداد موفق</li>
+                          <li>• ۵۰ داوطلب آموزش‌دیده</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -345,23 +445,50 @@ function App() {
               {/* Phase 3 */}
               <div className="relative flex items-center">
                 <div className="w-1/2 pr-8 text-right">
-                  <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
+                  <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 border border-white/50 shadow-3xl hover:shadow-2xl transition-all">
                     <div className="flex items-center justify-end mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900">فاز سوم: تأثیرگذاری</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-1">فاز سوم: تأثیرگذاری و پایداری</h3>
                         <p className="text-red-600 font-medium">فروردین ۱۴۰۵ - شهریور ۱۴۰۵</p>
                       </div>
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                        <Star className="text-red-600" size={20} />
+                      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <Star className="text-red-600" size={24} />
                       </div>
                     </div>
-                    <p className="text-gray-600">
-                      ایجاد تأثیر گسترده در جامعه، همکاری با سازمان‌های بزرگ، و تبدیل شدن به الگویی برای سایرین
+                    <p className="text-gray-700 mb-4 leading-relaxed">
+                      مرحله بلوغ و تأثیرگذاری که در آن پروژه به یک نهاد مستقل و پایدار تبدیل شده و الگویی برای سایرین می‌شود.
                     </p>
+                    <div className="space-y-3">
+                      <div className="bg-yellow-50 p-3 rounded-xl">
+                        <h4 className="font-semibold text-gray-800 mb-1">🌟 اهداف کلیدی:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• همکاری با ۱۰ سازمان بزرگ</li>
+                          <li>• راه‌اندازی صندوق حمایتی</li>
+                          <li>• تأسیس مرکز آموزش رهبری</li>
+                        </ul>
+                      </div>
+                      <div className="bg-orange-50 p-3 rounded-xl">
+                        <h4 className="font-semibold text-gray-800 mb-1">🏆 شاخص‌های موفقیت:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• ۱۰۰۰۰ نفر تحت تأثیر مستقیم</li>
+                          <li>• ۲۰ پروژه اجتماعی فعال</li>
+                          <li>• خودکفایی مالی ۱۰۰٪</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-red-500 rounded-full border-4 border-white shadow-lg"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full border-4 border-white shadow-xl z-10"></div>
                 <div className="w-1/2"></div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-16">
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl max-w-2xl mx-auto">
+                <p className="text-gray-600 italic">
+                  "هر مرحله از این نقشه راه با دقت طراحی شده و قابل تنظیم است. 
+                  ما متعهد به شفافیت کامل در گزارش پیشرفت و دستیابی به اهداف تعریف شده هستیم."
+                </p>
               </div>
             </div>
           </div>
@@ -541,6 +668,195 @@ function App() {
           </div>
         </div>
       </footer>
+      
+      {/* Login Page */}
+      {currentPage === 'login' && (
+        <div className="min-h-screen pt-24 pb-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-white to-red-100 animate-gradient"></div>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-md mx-auto">
+              <div className="backdrop-blur-xl bg-white/95 rounded-3xl p-8 border border-white/60 shadow-3xl">
+                <div className="text-center mb-8">
+                  <img 
+                    src="https://raw.githubusercontent.com/proxit-git/website/main/logo.png" 
+                    alt="قهرمانان زندگی" 
+                    className="h-16 w-auto mx-auto mb-4"
+                  />
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">ورود به حساب</h2>
+                  <p className="text-gray-600">به خانواده قهرمانان زندگی بپیوندید</p>
+                </div>
+                
+                <form className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ایمیل</label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="example@email.com"
+                      dir="ltr"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">رمز عبور</label>
+                    <input
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="رمز عبور خود را وارد کنید"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                      <span className="mr-2 text-sm text-gray-600">مرا به خاطر بسپار</span>
+                    </label>
+                    <button type="button" className="text-sm text-red-600 hover:text-red-700">فراموشی رمز عبور؟</button>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors transform hover:scale-105"
+                  >
+                    ورود
+                  </button>
+                </form>
+                
+                <div className="mt-6 text-center">
+                  <p className="text-gray-600">
+                    حساب کاربری ندارید؟{' '}
+                    <button 
+                      onClick={() => setCurrentPage('signup')}
+                      className="text-red-600 hover:text-red-700 font-medium"
+                    >
+                      ثبت نام کنید
+                    </button>
+                  </p>
+                </div>
+                
+                <div className="mt-6">
+                  <button
+                    onClick={() => setCurrentPage('home')}
+                    className="w-full text-gray-600 hover:text-gray-800 py-2 font-medium transition-colors"
+                  >
+                    بازگشت به صفحه اصلی
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Signup Page */}
+      {currentPage === 'signup' && (
+        <div className="min-h-screen pt-24 pb-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-bl from-red-50 via-white to-red-100 animate-gradient-reverse"></div>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-md mx-auto">
+              <div className="backdrop-blur-xl bg-white/95 rounded-3xl p-8 border border-white/60 shadow-3xl">
+                <div className="text-center mb-8">
+                  <img 
+                    src="https://raw.githubusercontent.com/proxit-git/website/main/logo.png" 
+                    alt="قهرمانان زندگی" 
+                    className="h-16 w-auto mx-auto mb-4"
+                  />
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">ثبت نام</h2>
+                  <p className="text-gray-600">عضو خانواده قهرمانان زندگی شوید</p>
+                </div>
+                
+                <form className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">نام و نام خانوادگی</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="نام کامل خود را وارد کنید"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ایمیل</label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="example@email.com"
+                      dir="ltr"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">شماره تماس</label>
+                    <input
+                      type="tel"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="09123456789"
+                      dir="ltr"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">رمز عبور</label>
+                    <input
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="رمز عبور قوی انتخاب کنید"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">تکرار رمز عبور</label>
+                    <input
+                      type="password"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      placeholder="رمز عبور را مجدداً وارد کنید"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="flex items-start">
+                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500 mt-1" />
+                      <span className="mr-2 text-sm text-gray-600 leading-relaxed">
+                        با قوانین و مقررات سایت موافقم و شرایط استفاده از خدمات را می‌پذیرم
+                      </span>
+                    </label>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors transform hover:scale-105"
+                  >
+                    ثبت نام
+                  </button>
+                </form>
+                
+                <div className="mt-6 text-center">
+                  <p className="text-gray-600">
+                    قبلاً ثبت نام کرده‌اید؟{' '}
+                    <button 
+                      onClick={() => setCurrentPage('login')}
+                      className="text-red-600 hover:text-red-700 font-medium"
+                    >
+                      وارد شوید
+                    </button>
+                  </p>
+                </div>
+                
+                <div className="mt-6">
+                  <button
+                    onClick={() => setCurrentPage('home')}
+                    className="w-full text-gray-600 hover:text-gray-800 py-2 font-medium transition-colors"
+                  >
+                    بازگشت به صفحه اصلی
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+        </>
+      )}
     </div>
   );
 }
