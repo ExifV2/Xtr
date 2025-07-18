@@ -207,7 +207,7 @@ function App() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
-                  onClick={handleContactClick}
+                  onClick={() => setCurrentPage('signup')}
                   className="bg-red-600 text-white px-8 py-4 rounded-full hover:bg-red-700 transition-all transform hover:scale-105 font-semibold shadow-lg"
                 >
                   همین الان شروع کنید
@@ -291,7 +291,7 @@ function App() {
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl hover:shadow-2xl transition-all transform hover:scale-105">
                 <div className="mb-4">
                   <img 
-                    src="https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop"
+                    src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=300&fit=crop&crop=center"
                     alt="هکاتون مشهد" 
                     className="w-full h-48 object-cover rounded-2xl"
                   />
@@ -505,21 +505,22 @@ function App() {
             </h2>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Review Card Placeholder */}
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    <MessageCircle className="text-gray-400" size={24} />
-                  </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+                    alt="علی احمدی" 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div className="mr-4">
-                    <h4 className="font-semibold text-gray-900">نظرات کاربران</h4>
-                    <p className="text-sm text-gray-600">به زودی</p>
+                    <h4 className="font-semibold text-gray-900">علی احمدی</h4>
+                    <p className="text-sm text-gray-600">دانشجوی مهندسی</p>
                   </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  نظرات و پیام‌های حمایت از طرف کاربران و حامیان پروژه در اینجا نمایش داده خواهد شد.
+                <p className="text-gray-700 mb-4">
+                  "شرکت در رویدادهای قهرمانان زندگی تجربه فوق‌العاده‌ای بود. انگیزه و امید زیادی پیدا کردم."
                 </p>
-                <div className="flex text-gray-400">
+                <div className="flex text-yellow-400">
                   <Star size={16} />
                   <Star size={16} />
                   <Star size={16} />
@@ -530,18 +531,20 @@ function App() {
 
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    <MessageCircle className="text-gray-400" size={24} />
-                  </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
+                    alt="فاطمه رضایی" 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div className="mr-4">
-                    <h4 className="font-semibold text-gray-900">پیام‌های حمایت</h4>
-                    <p className="text-sm text-gray-600">به زودی</p>
+                    <h4 className="font-semibold text-gray-900">فاطمه رضایی</h4>
+                    <p className="text-sm text-gray-600">کارآفرین</p>
                   </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  پیام‌های حمایت و انگیزه بخش از طرف افراد و سازمان‌های مختلف در اینجا قرار خواهد گرفت.
+                <p className="text-gray-700 mb-4">
+                  "تیم قهرمانان زندگی واقعاً الهام‌بخش هستند. کارهایشان تأثیر مثبت زیادی روی جامعه داره."
                 </p>
-                <div className="flex text-gray-400">
+                <div className="flex text-yellow-400">
                   <Star size={16} />
                   <Star size={16} />
                   <Star size={16} />
@@ -552,18 +555,20 @@ function App() {
 
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    <MessageCircle className="text-gray-400" size={24} />
-                  </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                    alt="محمد حسینی" 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div className="mr-4">
-                    <h4 className="font-semibold text-gray-900">بازخورد کاربران</h4>
-                    <p className="text-sm text-gray-600">به زودی</p>
+                    <h4 className="font-semibold text-gray-900">محمد حسینی</h4>
+                    <p className="text-sm text-gray-600">مدیر پروژه</p>
                   </div>
                 </div>
-                <p className="text-gray-600 mb-4">
-                  بازخورد‌های مثبت و سازنده از طرف کاربران و شرکت‌کنندگان در رویدادهای ما در اینجا نمایش داده می‌شود.
+                <p className="text-gray-700 mb-4">
+                  "همکاری با این تیم تجربه ارزشمندی بود. رویکرد حرفه‌ای و انگیزه بالایشان قابل تحسین است."
                 </p>
-                <div className="flex text-gray-400">
+                <div className="flex text-yellow-400">
                   <Star size={16} />
                   <Star size={16} />
                   <Star size={16} />
