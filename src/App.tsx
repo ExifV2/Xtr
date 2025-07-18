@@ -4,60 +4,106 @@ import { Menu, X, Calendar, MessageCircle, Mail, Phone, MapPin, ChevronDown, Pla
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const [videoVolume, setVideoVolume] = useState(0.5);
+  const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
 
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
-      // Fade video sound as user scrolls
+    };
+
+    const handleUserInteraction = () => {
+      if (!hasUserInteracted) {
+        setHasUserInteracted(true);
+        const video = document.getElementById('heroVideo') as HTMLVideoElement;
+        if (video) {
+          // Try to play with sound after user interaction
+          video.muted = false;
+          video.volume = 0.7;
+          setIsVideoMuted(false);
+          video.play().catch(e => {
+            console.log('Video play failed:', e);
+            // Fallback to muted if unmuted fails
+            video.muted = true;
+            setIsVideoMuted(true);
+            video.play();
+          });
+        }
+      }
+    };
+
+    const initializeVideo = async () => {
       const video = document.getElementById('heroVideo') as HTMLVideoElement;
       if (video) {
-        const fadePoint = window.innerHeight * 0.3;
-        if (!video.muted) {
-          const newVolume = Math.max(0, 0.5 - (window.scrollY / fadePoint) * 0.5);
-          video.volume = newVolume;
+        // Set video properties for better mobile support
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.muted = true;
+        video.volume = 0.7;
+        video.loop = true;
+        video.autoplay = true;
+
+        // Try to play the video
+        try {
+          await video.play();
+          console.log('Video started playing');
+        } catch (error) {
+          console.log('Autoplay failed:', error);
         }
+
+        video.addEventListener('loadstart', () => {
+          console.log('Video loading started');
+        });
+
+        video.addEventListener('canplay', () => {
+          console.log('Video can start playing');
+        });
+
+        video.addEventListener('error', (e) => {
+          console.error('Video error:', e);
+        });
+
+        // Handle volume fade on scroll
+        const handleScroll = () => {
+          if (!video.muted && hasUserInteracted) {
+            const fadePoint = window.innerHeight * 0.5;
+            const newVolume = Math.max(0, 0.7 - (window.scrollY / fadePoint) * 0.7);
+            video.volume = newVolume;
+          }
+        };
+
+        window.addEventListener('scroll', handleScroll);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
-    
-    // Handle video and audio initialization
-    const initializeVideo = () => {
-      const video = document.getElementById('heroVideo') as HTMLVideoElement;
-      const audioIcon = document.getElementById('audioIcon');
-      
-      if (video) {
-        // Ensure video starts muted for autoplay compliance
-        video.muted = true;
-        
-        // Update audio icon based on muted state
-        if (audioIcon) {
-          audioIcon.textContent = video.muted ? '🔇' : '🔊';
-        }
-        
-        // Add event listeners for video
-        video.addEventListener('loadstart', () => {
-          console.log('Video loading started');
-        });
-        
-        video.addEventListener('canplay', () => {
-          console.log('Video can start playing');
-        });
-        
-        video.addEventListener('error', (e) => {
-          console.error('Video error:', e);
-        });
-      }
-    };
-    
-    // Initialize video when component mounts
-    initializeVideo();
-    
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('touchstart', handleUserInteraction);
 
+    initializeVideo();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [hasUserInteracted]);
+
+  const toggleVideoSound = () => {
+    const video = document.getElementById('heroVideo') as HTMLVideoElement;
+    if (video) {
+      if (video.muted) {
+        video.muted = false;
+        video.volume = 0.7;
+        setIsVideoMuted(false);
+        setHasUserInteracted(true);
+      } else {
+        video.muted = true;
+        setIsVideoMuted(true);
+      }
+    }
+  };
   const handleContactClick = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -163,35 +209,50 @@ function App() {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           controls={false}
-          webkit-playsinline="true"
+          style={{ 
+            transform: `translateY(${scrollY * 0.5}px)`,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
           className="absolute inset-0 w-full h-full object-cover object-center"
-          style={{ transform: `translateY(${scrollY * 0.5}px)` }}
+          onLoadedData={() => {
+            const video = document.getElementById('heroVideo') as HTMLVideoElement;
+            if (video) {
+              video.play().catch(e => console.log('Video play failed:', e));
+            }
+          }}
         >
           <source src="https://raw.githubusercontent.com/proxit-git/website/main/ORG.mp4" type="video/mp4" />
+          <source src="https://raw.githubusercontent.com/proxit-git/website/main/ORG.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
+        
+        {/* Video overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Audio control overlay */}
         <div className="absolute bottom-8 right-8 z-30">
           <button
-            onClick={() => {
-              const video = document.getElementById('heroVideo') as HTMLVideoElement;
-              if (video) {
-                if (video.muted) {
-                  video.muted = false;
-                  video.volume = 0.5;
-                } else {
-                  video.muted = true;
-                }
-              }
-            }}
-            className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/30 transition-all shadow-lg"
+            onClick={toggleVideoSound}
+            className="bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/30 transition-all shadow-lg border border-white/30"
           >
-            <span id="audioIcon">🔇</span>
+            <span className="text-xl">
+              {isVideoMuted ? '🔇' : '🔊'}
+            </span>
           </button>
         </div>
+        
+        {/* Click to unmute hint */}
+        {isVideoMuted && !hasUserInteracted && (
+          <div className="absolute bottom-8 left-8 z-30">
+            <div className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full border border-white/30 animate-pulse">
+              <span className="text-sm">برای شنیدن صدا کلیک کنید</span>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Hero Title Section with Glass Effect */}
@@ -507,20 +568,18 @@ function App() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
                 <div className="flex items-center mb-4">
-                  <img 
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-                    alt="علی احمدی" 
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                    <MessageCircle className="text-gray-400" size={24} />
+                  </div>
                   <div className="mr-4">
-                    <h4 className="font-semibold text-gray-900">علی احمدی</h4>
-                    <p className="text-sm text-gray-600">دانشجوی مهندسی</p>
+                    <h4 className="font-semibold text-gray-900">نظرات کاربران</h4>
+                    <p className="text-sm text-gray-600">به زودی</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-4">
-                  "شرکت در رویدادهای قهرمانان زندگی تجربه فوق‌العاده‌ای بود. انگیزه و امید زیادی پیدا کردم."
+                <p className="text-gray-600 mb-4">
+                  نظرات و پیام‌های حمایت از طرف کاربران و حامیان پروژه در اینجا نمایش داده خواهد شد.
                 </p>
-                <div className="flex text-yellow-400">
+                <div className="flex text-gray-400">
                   <Star size={16} />
                   <Star size={16} />
                   <Star size={16} />
@@ -531,20 +590,18 @@ function App() {
 
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
                 <div className="flex items-center mb-4">
-                  <img 
-                    src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-                    alt="فاطمه رضایی" 
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                    <MessageCircle className="text-gray-400" size={24} />
+                  </div>
                   <div className="mr-4">
-                    <h4 className="font-semibold text-gray-900">فاطمه رضایی</h4>
-                    <p className="text-sm text-gray-600">کارآفرین</p>
+                    <h4 className="font-semibold text-gray-900">پیام‌های حمایت</h4>
+                    <p className="text-sm text-gray-600">به زودی</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-4">
-                  "تیم قهرمانان زندگی واقعاً الهام‌بخش هستند. کارهایشان تأثیر مثبت زیادی روی جامعه داره."
+                <p className="text-gray-600 mb-4">
+                  پیام‌های حمایت و انگیزه بخش از طرف افراد و سازمان‌های مختلف در اینجا قرار خواهد گرفت.
                 </p>
-                <div className="flex text-yellow-400">
+                <div className="flex text-gray-400">
                   <Star size={16} />
                   <Star size={16} />
                   <Star size={16} />
@@ -555,20 +612,18 @@ function App() {
 
               <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 border border-white/50 shadow-3xl">
                 <div className="flex items-center mb-4">
-                  <img 
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-                    alt="محمد حسینی" 
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                    <MessageCircle className="text-gray-400" size={24} />
+                  </div>
                   <div className="mr-4">
-                    <h4 className="font-semibold text-gray-900">محمد حسینی</h4>
-                    <p className="text-sm text-gray-600">مدیر پروژه</p>
+                    <h4 className="font-semibold text-gray-900">بازخورد کاربران</h4>
+                    <p className="text-sm text-gray-600">به زودی</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-4">
-                  "همکاری با این تیم تجربه ارزشمندی بود. رویکرد حرفه‌ای و انگیزه بالایشان قابل تحسین است."
+                <p className="text-gray-600 mb-4">
+                  بازخورد‌های مثبت و سازنده از طرف کاربران و شرکت‌کنندگان در رویدادهای ما در اینجا نمایش داده می‌شود.
                 </p>
-                <div className="flex text-yellow-400">
+                <div className="flex text-gray-400">
                   <Star size={16} />
                   <Star size={16} />
                   <Star size={16} />
@@ -676,7 +731,7 @@ function App() {
       
       {/* Login Page */}
       {currentPage === 'login' && (
-        <div className="min-h-screen pt-24 pb-16 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-white to-red-100 animate-gradient"></div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-md mx-auto">
@@ -696,7 +751,7 @@ function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">ایمیل</label>
                     <input
                       type="email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="example@email.com"
                       dir="ltr"
                     />
@@ -706,14 +761,14 @@ function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">رمز عبور</label>
                     <input
                       type="password"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="رمز عبور خود را وارد کنید"
                     />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500 w-4 h-4" />
                       <span className="mr-2 text-sm text-gray-600">مرا به خاطر بسپار</span>
                     </label>
                     <button type="button" className="text-sm text-red-600 hover:text-red-700">فراموشی رمز عبور؟</button>
@@ -721,9 +776,25 @@ function App() {
                   
                   <button
                     type="submit"
-                    className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors transform hover:scale-105"
+                    className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     ورود
+                  </button>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">یا</span>
+                    </div>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="w-full bg-white border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-sm hover:shadow-md"
+                  >
+                    ورود با گوگل
                   </button>
                 </form>
                 
@@ -732,7 +803,7 @@ function App() {
                     حساب کاربری ندارید؟{' '}
                     <button 
                       onClick={() => setCurrentPage('signup')}
-                      className="text-red-600 hover:text-red-700 font-medium"
+                      className="text-red-600 hover:text-red-700 font-medium transition-colors"
                     >
                       ثبت نام کنید
                     </button>
@@ -742,8 +813,9 @@ function App() {
                 <div className="mt-6">
                   <button
                     onClick={() => setCurrentPage('home')}
-                    className="w-full text-gray-600 hover:text-gray-800 py-2 font-medium transition-colors"
+                    className="w-full text-gray-600 hover:text-gray-800 py-2 font-medium transition-colors flex items-center justify-center"
                   >
+                    <ArrowLeft size={16} className="ml-2" />
                     بازگشت به صفحه اصلی
                   </button>
                 </div>
@@ -755,7 +827,7 @@ function App() {
       
       {/* Signup Page */}
       {currentPage === 'signup' && (
-        <div className="min-h-screen pt-24 pb-16 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-8">
           <div className="absolute inset-0 bg-gradient-to-bl from-red-50 via-white to-red-100 animate-gradient-reverse"></div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-md mx-auto">
@@ -775,7 +847,7 @@ function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">نام و نام خانوادگی</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="نام کامل خود را وارد کنید"
                     />
                   </div>
@@ -784,7 +856,7 @@ function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">ایمیل</label>
                     <input
                       type="email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="example@email.com"
                       dir="ltr"
                     />
@@ -794,17 +866,30 @@ function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">شماره تماس</label>
                     <input
                       type="tel"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="09123456789"
                       dir="ltr"
                     />
                   </div>
                   
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">رشته تحصیلی / شغل</label>
+                    <select className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm">
+                      <option value="">انتخاب کنید</option>
+                      <option value="student">دانشجو</option>
+                      <option value="engineer">مهندس</option>
+                      <option value="doctor">پزشک</option>
+                      <option value="teacher">معلم</option>
+                      <option value="entrepreneur">کارآفرین</option>
+                      <option value="other">سایر</option>
+                    </select>
+                  </div>
+                  
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">رمز عبور</label>
                     <input
                       type="password"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="رمز عبور قوی انتخاب کنید"
                     />
                   </div>
@@ -813,14 +898,14 @@ function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">تکرار رمز عبور</label>
                     <input
                       type="password"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-white/80 backdrop-blur-sm"
                       placeholder="رمز عبور را مجدداً وارد کنید"
                     />
                   </div>
                   
                   <div>
                     <label className="flex items-start">
-                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500 mt-1" />
+                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500 mt-1 w-4 h-4" />
                       <span className="mr-2 text-sm text-gray-600 leading-relaxed">
                         با قوانین و مقررات سایت موافقم و شرایط استفاده از خدمات را می‌پذیرم
                       </span>
@@ -829,9 +914,25 @@ function App() {
                   
                   <button
                     type="submit"
-                    className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors transform hover:scale-105"
+                    className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     ثبت نام
+                  </button>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">یا</span>
+                    </div>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="w-full bg-white border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-sm hover:shadow-md"
+                  >
+                    ثبت نام با گوگل
                   </button>
                 </form>
                 
@@ -840,7 +941,7 @@ function App() {
                     قبلاً ثبت نام کرده‌اید؟{' '}
                     <button 
                       onClick={() => setCurrentPage('login')}
-                      className="text-red-600 hover:text-red-700 font-medium"
+                      className="text-red-600 hover:text-red-700 font-medium transition-colors"
                     >
                       وارد شوید
                     </button>
@@ -850,8 +951,9 @@ function App() {
                 <div className="mt-6">
                   <button
                     onClick={() => setCurrentPage('home')}
-                    className="w-full text-gray-600 hover:text-gray-800 py-2 font-medium transition-colors"
+                    className="w-full text-gray-600 hover:text-gray-800 py-2 font-medium transition-colors flex items-center justify-center"
                   >
+                    <ArrowLeft size={16} className="ml-2" />
                     بازگشت به صفحه اصلی
                   </button>
                 </div>
